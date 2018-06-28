@@ -9,12 +9,12 @@ Pod::Spec.new do |s|
 
   s.homepage     = "https://github.com/ShopHush/GPUImage2"
   s.license      = { :type => "BSD", :file => "License.txt" }
-  # s.authors            = { 'Brad Larson' => 'contact@sunsetlakesoftware.com', "Brophy" => "john@shophush.com" }
+  s.authors            = { 'Brad Larson' => 'contact@sunsetlakesoftware.com', "Brophy" => "john@shophush.com" }
 
   s.platform     = :ios
   s.ios.deployment_target = "9.0"
 
-  s.source       = { :git => "git@github.com:ShopHush/GPUImage2.git", :tag => "#{s.version}" }
+  s.source       = { :git => "git@github.com:ShopHush/GPUImage2.git", :tag => "v#{s.version}" }
 
 
   s.source_files = 'framework/Source/**/*.{swift}'
