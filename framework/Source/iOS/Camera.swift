@@ -151,6 +151,24 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
             captureSession.addOutput(videoOutput)
         }
         captureSession.sessionPreset = sessionPreset
+        
+        var captureConnection: AVCaptureConnection?
+        if let connections = videoOutput.connections as? [AVCaptureConnection] {
+            for connection in connections {
+                if let inputPorts = connection.inputPorts as? [AVCaptureInputPort] {
+                    for port in inputPorts {
+                        if port.mediaType == AVMediaTypeVideo {
+                            captureConnection = connection
+                        }
+                    }
+                }
+            }
+        }
+        
+        if let captureConnection = captureConnection, captureConnection.isVideoOrientationSupported {
+            captureConnection.videoOrientation = .portrait
+        }
+        
         captureSession.commitConfiguration()
 
         super.init()
