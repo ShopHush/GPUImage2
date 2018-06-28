@@ -166,7 +166,17 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
         }
         
         if let captureConnection = captureConnection, captureConnection.isVideoOrientationSupported {
-            captureConnection.videoOrientation = .portrait
+            switch self.location.imageOrientation() {
+            case .landscapeLeft:
+                captureConnection.videoOrientation = .landscapeLeft
+            case .landscapeRight:
+                captureConnection.videoOrientation = .landscapeRight
+            case .portrait:
+                captureConnection.videoOrientation = .portrait
+            case .portraitUpsideDown:
+                captureConnection.videoOrientation = .portraitUpsideDown
+            }
+            
         }
         
         captureSession.commitConfiguration()
