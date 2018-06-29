@@ -59,7 +59,9 @@ public class RenderView:UIView, ImageConsumer {
         displayRenderbuffer = newDisplayRenderbuffer
         glBindRenderbuffer(GLenum(GL_RENDERBUFFER), displayRenderbuffer!)
 
-        sharedImageProcessingContext.context.renderbufferStorage(Int(GL_RENDERBUFFER), from:self.layer as! CAEAGLLayer)
+        _ = DispatchQueue.main.sync {
+            sharedImageProcessingContext.context.renderbufferStorage(Int(GL_RENDERBUFFER), from:self.layer as! CAEAGLLayer)
+        }
 
         var backingWidth:GLint = 0
         var backingHeight:GLint = 0
@@ -114,5 +116,12 @@ public class RenderView:UIView, ImageConsumer {
         
         glBindRenderbuffer(GLenum(GL_RENDERBUFFER), displayRenderbuffer!)
         sharedImageProcessingContext.presentBufferForDisplay()
+        
+//        switch framebuffer.timingStyle {
+//        case .videoFrame(timestamp: let timestamp):
+//            print("Current timestamp : \(timestamp.seconds() * 1000.0) ms -- Render View")
+//        default:
+//            break
+//        }
     }
 }
