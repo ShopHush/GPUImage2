@@ -81,8 +81,8 @@ public class PictureOutput: ImageConsumer {
             let bitmapRepresentation = NSBitmapImageRep(cgImage:cgImageFromBytes)
             let imageData:Data
             switch encodedImageFormat {
-                case .png: imageData = bitmapRepresentation.representation(using: .PNG, properties: ["":""])!
-                case .jpeg: imageData = bitmapRepresentation.representation(using: .JPEG, properties: ["":""])!
+                case .png: imageData = bitmapRepresentation.representation(using: .png, properties: [NSBitmapImageRep.PropertyKey(rawValue: ""):""])!
+                case .jpeg: imageData = bitmapRepresentation.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey(rawValue: ""):""])!
             }
 
             imageCallback(imageData)
@@ -127,5 +127,5 @@ public extension NSImage {
 func dataProviderReleaseCallback(_ context:UnsafeMutableRawPointer?, data:UnsafeRawPointer, size:Int) {
 //    UnsafeMutablePointer<UInt8>(data).deallocate(capacity:size)
     // FIXME: Verify this is correct
-    data.deallocate(bytes:size, alignedTo:1)
+    data.deallocate()
 }
