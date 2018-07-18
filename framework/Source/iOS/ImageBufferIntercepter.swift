@@ -113,22 +113,23 @@ public class ImageBufferIntercepter: ImageConsumer {
     }
     
     func renderIntoPixelBuffer(_ pixelBuffer:CVPixelBuffer, framebuffer:Framebuffer) {
-        if !sharedImageProcessingContext.supportsTextureCaches() {
-            renderFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:framebuffer.orientation, size:GLSize(self.size))
-            renderFramebuffer.lock()
-        }
-        
-        renderFramebuffer.activateFramebufferForRendering()
-        clearFramebufferWithColor(Color.black)
-        CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
-        renderQuadWithShader(colorSwizzlingShader, uniformSettings:ShaderUniformSettings(), vertexBufferObject:sharedImageProcessingContext.standardImageVBO, inputTextures:[framebuffer.texturePropertiesForOutputRotation(.noRotation)])
-        
-        if sharedImageProcessingContext.supportsTextureCaches() {
-            glFinish()
-        } else {
-            glReadPixels(0, 0, renderFramebuffer.size.width, renderFramebuffer.size.height, GLenum(GL_RGBA), GLenum(GL_UNSIGNED_BYTE), CVPixelBufferGetBaseAddress(pixelBuffer))
-            renderFramebuffer.unlock()
+        sharedImageProcessingContext.runOperationAsynchronously {
+            if !sharedImageProcessingContext.supportsTextureCaches() {
+                self.renderFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:framebuffer.orientation, size:GLSize(self.size))
+                self.renderFramebuffer.lock()
+            }
+            
+            self.renderFramebuffer.activateFramebufferForRendering()
+            clearFramebufferWithColor(Color.black)
+            CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
+            renderQuadWithShader(self.colorSwizzlingShader, uniformSettings:ShaderUniformSettings(), vertexBufferObject:sharedImageProcessingContext.standardImageVBO, inputTextures:[framebuffer.texturePropertiesForOutputRotation(.noRotation)])
+            
+            if sharedImageProcessingContext.supportsTextureCaches() {
+                glFinish()
+            } else {
+                glReadPixels(0, 0, self.renderFramebuffer.size.width, self.renderFramebuffer.size.height, GLenum(GL_RGBA), GLenum(GL_UNSIGNED_BYTE), CVPixelBufferGetBaseAddress(pixelBuffer))
+                self.renderFramebuffer.unlock()
+            }
         }
     }
-    
 }
