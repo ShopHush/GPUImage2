@@ -14,6 +14,7 @@ import AVFoundation
 public class ImageBufferIntercepter: ImageConsumer {
 
     public var pixelBufferAvailableCallback:((CVPixelBuffer, CMTime) -> ())?
+    public var completedPixelBufferRenderingCallback: (() -> ())?
     
     var storedFramebuffer:Framebuffer?
     
@@ -32,6 +33,8 @@ public class ImageBufferIntercepter: ImageConsumer {
     
     private let assetWriterPixelBufferInput:AVAssetWriterInputPixelBufferAdaptor
     
+    private let processingQueue: DispatchQueue = DispatchQueue(label: "ImageBufferIntercepter", qos: DispatchQoS.utility)
+    
     public init(assetWriterPixelBufferInput:AVAssetWriterInputPixelBufferAdaptor, size: Size) {
         if sharedImageProcessingContext.supportsTextureCaches() {
             self.colorSwizzlingShader = sharedImageProcessingContext.passthroughShader
@@ -46,39 +49,7 @@ public class ImageBufferIntercepter: ImageConsumer {
     }
     
     public func newFramebufferAvailable(_ framebuffer:Framebuffer, fromSourceIndex:UInt) {
-        defer {
-            framebuffer.unlock()
-        }
-        guard self.isRecording else {
-            return
-        }
-        
-        // Ignore still images and other non-video updates (do I still need this?)
-        guard let frameTime = framebuffer.timingStyle.timestamp?.asCMTime else { return }
-        // If two consecutive times with the same value are added to the movie, it aborts recording, so I bail on that case
-        guard (frameTime != previousFrameTime) else { return }
-        
-        if (startTime == nil) {
-            startTime = frameTime
-        }
-        
-        if !sharedImageProcessingContext.supportsTextureCaches() {
-            let pixelBufferStatus = CVPixelBufferPoolCreatePixelBuffer(nil, assetWriterPixelBufferInput.pixelBufferPool!, &pixelBuffer)
-            guard ((pixelBuffer != nil) && (pixelBufferStatus == kCVReturnSuccess)) else { return }
-        }
-        
-        renderIntoPixelBuffer(pixelBuffer!, framebuffer:framebuffer)
-
-        pixelBufferAvailableCallback?(pixelBuffer!, frameTime)
-        
-//        if (!assetWriterPixelBufferInput.append(pixelBuffer!, withPresentationTime:frameTime)) {
-//            debugPrint("Problem appending pixel buffer at time: \(frameTime)")
-//        }
-        
-        CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
-        if !sharedImageProcessingContext.supportsTextureCaches() {
-            pixelBuffer = nil
-        }
+        processFramebuffer(framebuffer)
     }
     
     public func startRecording() {
@@ -109,11 +80,14 @@ public class ImageBufferIntercepter: ImageConsumer {
     public func stopRecording() {
         sharedImageProcessingContext.runOperationSynchronously{
             self.isRecording = false
+            sharedImageProcessingContext.runOperationAsynchronously {
+                self.completedPixelBufferRenderingCallback?()
+            }
         }
     }
     
     func renderIntoPixelBuffer(_ pixelBuffer:CVPixelBuffer, framebuffer:Framebuffer) {
-        sharedImageProcessingContext.runOperationAsynchronously {
+        // sharedImageProcessingContext.runOperationAsynchronously {
             if !sharedImageProcessingContext.supportsTextureCaches() {
                 self.renderFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:framebuffer.orientation, size:GLSize(self.size))
                 self.renderFramebuffer.lock()
@@ -129,6 +103,49 @@ public class ImageBufferIntercepter: ImageConsumer {
             } else {
                 glReadPixels(0, 0, self.renderFramebuffer.size.width, self.renderFramebuffer.size.height, GLenum(GL_RGBA), GLenum(GL_UNSIGNED_BYTE), CVPixelBufferGetBaseAddress(pixelBuffer))
                 self.renderFramebuffer.unlock()
+            }
+        //}
+    }
+    
+    
+    private func processFramebuffer(_ framebuffer: Framebuffer) {
+        guard self.isRecording else {
+            framebuffer.unlock()
+            return
+        }
+        
+        sharedImageProcessingContext.runOperationAsynchronously {
+            defer {
+                framebuffer.unlock()
+            }
+            
+            
+            // Ignore still images and other non-video updates (do I still need this?)
+            guard let frameTime = framebuffer.timingStyle.timestamp?.asCMTime else { return }
+            // If two consecutive times with the same value are added to the movie, it aborts recording, so I bail on that case
+            guard (frameTime != self.previousFrameTime) else { return }
+            self.previousFrameTime = frameTime
+            
+            if (self.startTime == nil) {
+                self.startTime = frameTime
+            }
+            
+            if !sharedImageProcessingContext.supportsTextureCaches() {
+                let pixelBufferStatus = CVPixelBufferPoolCreatePixelBuffer(nil, self.assetWriterPixelBufferInput.pixelBufferPool!, &self.pixelBuffer)
+                guard ((self.pixelBuffer != nil) && (pixelBufferStatus == kCVReturnSuccess)) else { return }
+            }
+            
+            self.renderIntoPixelBuffer(self.pixelBuffer!, framebuffer:framebuffer)
+            
+            self.pixelBufferAvailableCallback?(self.pixelBuffer!, frameTime)
+            
+            //        if (!assetWriterPixelBufferInput.append(pixelBuffer!, withPresentationTime:frameTime)) {
+            //            debugPrint("Problem appending pixel buffer at time: \(frameTime)")
+            //        }
+            
+            CVPixelBufferUnlockBaseAddress(self.pixelBuffer!, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
+            if !sharedImageProcessingContext.supportsTextureCaches() {
+                self.pixelBuffer = nil
             }
         }
     }
