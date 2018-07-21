@@ -30,7 +30,7 @@ public class Beautify: OperationGroup {
 
             saturationFilter.saturation = 1.1
 
-            brightnessFilter.brightness = 0.1
+            brightnessFilter.brightness = 0.05
 
             input --> brightnessFilter --> saturationFilter --> output
         }

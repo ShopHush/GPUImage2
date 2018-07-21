@@ -14,7 +14,7 @@ import AVFoundation
 public class ImageBufferIntercepter: ImageConsumer {
 
     public var pixelBufferAvailableCallback:((CVPixelBuffer, CMTime) -> ())?
-    public var completedPixelBufferRenderingCallback: (() -> ())?
+    public var completedPixelBufferRenderingCallback: ((ImageBufferIntercepter) -> ())?
     
     var storedFramebuffer:Framebuffer?
     
@@ -31,18 +31,18 @@ public class ImageBufferIntercepter: ImageConsumer {
     public let maximumInputs:UInt = 1
     var isRecording: Bool = false
     
-    private let assetWriterPixelBufferInput:AVAssetWriterInputPixelBufferAdaptor
+    private let pixelBufferPool: CVPixelBufferPool
     
     private let processingQueue: DispatchQueue = DispatchQueue(label: "ImageBufferIntercepter", qos: DispatchQoS.utility)
     
-    public init(assetWriterPixelBufferInput:AVAssetWriterInputPixelBufferAdaptor, size: Size) {
+    public init(pixelBufferPool: CVPixelBufferPool, size: Size) {
         if sharedImageProcessingContext.supportsTextureCaches() {
             self.colorSwizzlingShader = sharedImageProcessingContext.passthroughShader
         } else {
             self.colorSwizzlingShader = crashOnShaderCompileFailure("MovieOutput"){try sharedImageProcessingContext.programForVertexShader(defaultVertexShaderForInputs(1), fragmentShader:ColorSwizzlingFragmentShader)}
         }
         self.size = size
-        self.assetWriterPixelBufferInput = assetWriterPixelBufferInput
+        self.pixelBufferPool = pixelBufferPool
     }
     
     deinit {
@@ -57,7 +57,7 @@ public class ImageBufferIntercepter: ImageConsumer {
         sharedImageProcessingContext.runOperationSynchronously{
             self.isRecording = true
             
-            CVPixelBufferPoolCreatePixelBuffer(nil, self.assetWriterPixelBufferInput.pixelBufferPool!, &self.pixelBuffer)
+            CVPixelBufferPoolCreatePixelBuffer(nil, self.pixelBufferPool, &self.pixelBuffer)
             
             /* AVAssetWriter will use BT.601 conversion matrix for RGB to YCbCr conversion
              * regardless of the kCVImageBufferYCbCrMatrixKey value.
@@ -70,41 +70,46 @@ public class ImageBufferIntercepter: ImageConsumer {
             
             let bufferSize = GLSize(self.size)
             var cachedTextureRef:CVOpenGLESTexture? = nil
-            let _ = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault, sharedImageProcessingContext.coreVideoTextureCache, self.pixelBuffer!, nil, GLenum(GL_TEXTURE_2D), GL_RGBA, bufferSize.width, bufferSize.height, GLenum(GL_BGRA), GLenum(GL_UNSIGNED_BYTE), 0, &cachedTextureRef)
+            let status = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault, sharedImageProcessingContext.coreVideoTextureCache, self.pixelBuffer!, nil, GLenum(GL_TEXTURE_2D), GL_RGBA, bufferSize.width, bufferSize.height, GLenum(GL_BGRA), GLenum(GL_UNSIGNED_BYTE), 0, &cachedTextureRef)
+            
+            guard status == kCVReturnSuccess else {
+                print("ERROR CREATING OpenGLESTexture! Error code: \(status)")
+                self.isRecording = false
+                return
+            }
             let cachedTexture = CVOpenGLESTextureGetName(cachedTextureRef!)
             
             self.renderFramebuffer = try! Framebuffer(context:sharedImageProcessingContext, orientation:.landscapeRight, size:bufferSize, textureOnly:false, overriddenTexture: cachedTexture)
         }
     }
     
-    public func stopRecording() {
+    public func stopRecording(withCompletionHandler completionHandler: (() -> Void)?) {
         sharedImageProcessingContext.runOperationSynchronously{
             self.isRecording = false
             sharedImageProcessingContext.runOperationAsynchronously {
-                self.completedPixelBufferRenderingCallback?()
+                self.completedPixelBufferRenderingCallback?(self)
+                completionHandler?()
             }
         }
     }
     
     func renderIntoPixelBuffer(_ pixelBuffer:CVPixelBuffer, framebuffer:Framebuffer) {
-        // sharedImageProcessingContext.runOperationAsynchronously {
-            if !sharedImageProcessingContext.supportsTextureCaches() {
-                self.renderFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:framebuffer.orientation, size:GLSize(self.size))
-                self.renderFramebuffer.lock()
-            }
-            
-            self.renderFramebuffer.activateFramebufferForRendering()
-            clearFramebufferWithColor(Color.black)
-            CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
-            renderQuadWithShader(self.colorSwizzlingShader, uniformSettings:ShaderUniformSettings(), vertexBufferObject:sharedImageProcessingContext.standardImageVBO, inputTextures:[framebuffer.texturePropertiesForOutputRotation(.noRotation)])
-            
-            if sharedImageProcessingContext.supportsTextureCaches() {
-                glFinish()
-            } else {
-                glReadPixels(0, 0, self.renderFramebuffer.size.width, self.renderFramebuffer.size.height, GLenum(GL_RGBA), GLenum(GL_UNSIGNED_BYTE), CVPixelBufferGetBaseAddress(pixelBuffer))
-                self.renderFramebuffer.unlock()
-            }
-        //}
+        if !sharedImageProcessingContext.supportsTextureCaches() {
+            self.renderFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:framebuffer.orientation, size:GLSize(self.size))
+            self.renderFramebuffer.lock()
+        }
+        
+        self.renderFramebuffer.activateFramebufferForRendering()
+        clearFramebufferWithColor(Color.black)
+        CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
+        renderQuadWithShader(self.colorSwizzlingShader, uniformSettings:ShaderUniformSettings(), vertexBufferObject:sharedImageProcessingContext.standardImageVBO, inputTextures:[framebuffer.texturePropertiesForOutputRotation(.noRotation)])
+        
+        if sharedImageProcessingContext.supportsTextureCaches() {
+            glFinish()
+        } else {
+            glReadPixels(0, 0, self.renderFramebuffer.size.width, self.renderFramebuffer.size.height, GLenum(GL_RGBA), GLenum(GL_UNSIGNED_BYTE), CVPixelBufferGetBaseAddress(pixelBuffer))
+            self.renderFramebuffer.unlock()
+        }
     }
     
     
@@ -124,6 +129,11 @@ public class ImageBufferIntercepter: ImageConsumer {
             guard let frameTime = framebuffer.timingStyle.timestamp?.asCMTime else { return }
             // If two consecutive times with the same value are added to the movie, it aborts recording, so I bail on that case
             guard (frameTime != self.previousFrameTime) else { return }
+//            guard frameTime.value > 0 else {
+//                print("Empty timeframe")
+//                return
+//            }
+//            print("timeframe: \(frameTime.value) \(frameTime.timescale) \(frameTime.seconds)")
             self.previousFrameTime = frameTime
             
             if (self.startTime == nil) {
@@ -131,17 +141,13 @@ public class ImageBufferIntercepter: ImageConsumer {
             }
             
             if !sharedImageProcessingContext.supportsTextureCaches() {
-                let pixelBufferStatus = CVPixelBufferPoolCreatePixelBuffer(nil, self.assetWriterPixelBufferInput.pixelBufferPool!, &self.pixelBuffer)
+                let pixelBufferStatus = CVPixelBufferPoolCreatePixelBuffer(nil, self.pixelBufferPool, &self.pixelBuffer)
                 guard ((self.pixelBuffer != nil) && (pixelBufferStatus == kCVReturnSuccess)) else { return }
             }
             
             self.renderIntoPixelBuffer(self.pixelBuffer!, framebuffer:framebuffer)
             
             self.pixelBufferAvailableCallback?(self.pixelBuffer!, frameTime)
-            
-            //        if (!assetWriterPixelBufferInput.append(pixelBuffer!, withPresentationTime:frameTime)) {
-            //            debugPrint("Problem appending pixel buffer at time: \(frameTime)")
-            //        }
             
             CVPixelBufferUnlockBaseAddress(self.pixelBuffer!, CVPixelBufferLockFlags(rawValue:CVOptionFlags(0)))
             if !sharedImageProcessingContext.supportsTextureCaches() {
