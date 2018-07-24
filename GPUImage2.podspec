@@ -12,8 +12,8 @@ Pod::Spec.new do |s|
   s.authors            = { 'Brad Larson' => 'contact@sunsetlakesoftware.com', "Brophy" => "john@shophush.com" }
 
   s.platform     = :ios
-  s.ios.deployment_target = "9.0"
-
+  s.ios.deployment_target = "10.0"
+  s.swift_version = '4.1'
   s.source       = { :git => "git@github.com:ShopHush/GPUImage2.git", :tag => "v#{s.version}" }
 
 
