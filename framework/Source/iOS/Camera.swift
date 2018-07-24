@@ -66,19 +66,19 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
     public let targets = TargetContainer()
     public var delegate: CameraDelegate?
     public let captureSession:AVCaptureSession
-    let inputCamera:AVCaptureDevice!
+    public let videoOutput:AVCaptureVideoDataOutput!
+    internal (set) public var audioOutput:AVCaptureAudioDataOutput?
+    public let inputCamera:AVCaptureDevice!
     let videoInput:AVCaptureDeviceInput!
-    let videoOutput:AVCaptureVideoDataOutput!
     var microphone:AVCaptureDevice?
     var audioInput:AVCaptureDeviceInput?
-    var audioOutput:AVCaptureAudioDataOutput?
-
+    
+    public let cameraProcessingQueue = DispatchQueue.global()
+    public let audioProcessingQueue = DispatchQueue.global()
     var supportsFullYUVRange:Bool = false
     let captureAsYUV:Bool
     let yuvConversionShader:ShaderProgram?
     let frameRenderingSemaphore = DispatchSemaphore(value:1)
-    let cameraProcessingQueue = DispatchQueue.global()
-    let audioProcessingQueue = DispatchQueue.global()
 
     let framesToIgnore = 5
     var numberOfFramesCaptured = 0
@@ -300,7 +300,7 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
     // MARK: -
     // MARK: Audio processing
     
-    func addAudioInputsAndOutputs() throws {
+    public func addAudioInputsAndOutputs() throws {
         guard (self.audioOutput == nil) else { return }
         
         captureSession.beginConfiguration()
@@ -324,7 +324,7 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
         audioOutput.setSampleBufferDelegate(self, queue:audioProcessingQueue)
     }
     
-    func removeAudioInputsAndOutputs() {
+    public func removeAudioInputsAndOutputs() {
         guard (audioOutput != nil) else { return }
         
         captureSession.beginConfiguration()
