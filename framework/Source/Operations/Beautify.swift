@@ -45,3 +45,21 @@ public class Beautify: OperationGroup {
         }        
     }
 }
+
+fileprivate class ImageCombinationFilter: BasicOperation {
+    var intensity: Float = 0.5 {
+        didSet {
+            uniformSettings["smoothDegree"] = intensity
+        }
+    }
+    
+    init() {
+        let initialShader = crashOnShaderCompileFailure("Beautify"){try sharedImageProcessingContext.programForVertexShader(
+            ThreeInputVertexShader,
+            fragmentShader:BeautifyFragmentShader)
+        }
+        super.init(shader: initialShader, numberOfInputs: 3)
+        
+        ({intensity = 0.5})()
+    }
+}

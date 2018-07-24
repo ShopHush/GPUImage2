@@ -350,8 +350,7 @@
 		BCFF46FC1CBAF85000A0C521 /* TransformOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFF46FB1CBAF85000A0C521 /* TransformOperation.swift */; };
 		BCFF46FE1CBB0C1F00A0C521 /* AverageColorExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFF46FD1CBB0C1F00A0C521 /* AverageColorExtractor.swift */; };
 		BCFF47081CBB443B00A0C521 /* CameraConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFF47071CBB443B00A0C521 /* CameraConversion.swift */; };
-		DCCE5E5020FEC16700EF86F9 /* Beautify.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */; };
-		DCCE5E5120FEC16700EF86F9 /* ImageCombinationFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCE5E4F20FEC16700EF86F9 /* ImageCombinationFilter.swift */; };
+		DC1BEF032106B5B3007FB281 /* Beautify.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */; };
 		DCCE5E5320FEC17F00EF86F9 /* Beautify.fsh in Resources */ = {isa = PBXBuildFile; fileRef = DCCE5E5220FEC17F00EF86F9 /* Beautify.fsh */; };
 /* End PBXBuildFile section */
 
@@ -690,7 +689,6 @@
 		BCFF47001CBB0D8900A0C521 /* AverageColor.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = AverageColor.vsh; path = Source/Operations/Shaders/AverageColor.vsh; sourceTree = "<group>"; };
 		BCFF47071CBB443B00A0C521 /* CameraConversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CameraConversion.swift; path = Source/CameraConversion.swift; sourceTree = "<group>"; };
 		DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Beautify.swift; path = Source/Operations/Beautify.swift; sourceTree = "<group>"; };
-		DCCE5E4F20FEC16700EF86F9 /* ImageCombinationFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ImageCombinationFilter.swift; path = Source/Operations/ImageCombinationFilter.swift; sourceTree = "<group>"; };
 		DCCE5E5220FEC17F00EF86F9 /* Beautify.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = Beautify.fsh; path = Source/Operations/Shaders/Beautify.fsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -852,7 +850,6 @@
 			children = (
 				DCCE5E5220FEC17F00EF86F9 /* Beautify.fsh */,
 				DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */,
-				DCCE5E4F20FEC16700EF86F9 /* ImageCombinationFilter.swift */,
 				BC7FD14B1CB0BBC700037949 /* ChromaKeying.swift */,
 				BC7FD1491CB0BBAD00037949 /* ChromaKey_GL.fsh */,
 				BC7729591CB30B4E004C9E0B /* Convolution3x3.swift */,
@@ -1393,7 +1390,6 @@
 				BC7729621CB32163004C9E0B /* Laplacian.swift in Sources */,
 				BCFF46AE1CB7554700A0C521 /* AdaptiveThreshold.swift in Sources */,
 				BC7FD1301CB0A40E00037949 /* StretchDistortion.swift in Sources */,
-				DCCE5E5120FEC16700EF86F9 /* ImageCombinationFilter.swift in Sources */,
 				BC7FD1A51CB2160B00037949 /* CircleGenerator.swift in Sources */,
 				BCFF46D91CB9E46100A0C521 /* NobleCornerDetector.swift in Sources */,
 				BCFF46DB1CB9E4CB00A0C521 /* ShiTomasiFeatureDetector.swift in Sources */,
@@ -1444,7 +1440,6 @@
 				BC7FD0FB1CB0663C00037949 /* ShaderUniformSettings.swift in Sources */,
 				BC7FD13E1CB0B36600037949 /* OpacityAdjustment.swift in Sources */,
 				BC6E7CD41C3A29FF006DF678 /* OpenGLContext.swift in Sources */,
-				DCCE5E5020FEC16700EF86F9 /* Beautify.swift in Sources */,
 				BC7FD14C1CB0BBC700037949 /* ChromaKeying.swift in Sources */,
 				BC7FD1041CB0773500037949 /* ColorBurnBlend.swift in Sources */,
 				BC7FD11A1CB0793900037949 /* MultiplyBlend.swift in Sources */,
@@ -1628,6 +1623,7 @@
 				BC9E35C01E5257D000B8604F /* ChromaKeyBlend.swift in Sources */,
 				BC9E351B1E524CF500B8604F /* PictureInput.swift in Sources */,
 				BC9E35631E5256AA00B8604F /* Luminance.swift in Sources */,
+				DC1BEF032106B5B3007FB281 /* Beautify.swift in Sources */,
 				BC9E35BE1E5257CB00B8604F /* AddBlend.swift in Sources */,
 				BC9E35801E52570700B8604F /* ChromaKeying.swift in Sources */,
 				BC9E35401E524D8900B8604F /* Size.swift in Sources */,
