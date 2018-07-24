@@ -351,6 +351,7 @@
 		BCFF46FE1CBB0C1F00A0C521 /* AverageColorExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFF46FD1CBB0C1F00A0C521 /* AverageColorExtractor.swift */; };
 		BCFF47081CBB443B00A0C521 /* CameraConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFF47071CBB443B00A0C521 /* CameraConversion.swift */; };
 		DC1BEF032106B5B3007FB281 /* Beautify.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */; };
+		DC1BEEFC210684FF007FB281 /* ImageBufferIntercepter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1BEEFA210684F6007FB281 /* ImageBufferIntercepter.swift */; };
 		DCCE5E5320FEC17F00EF86F9 /* Beautify.fsh in Resources */ = {isa = PBXBuildFile; fileRef = DCCE5E5220FEC17F00EF86F9 /* Beautify.fsh */; };
 /* End PBXBuildFile section */
 
@@ -688,6 +689,7 @@
 		BCFF46FF1CBB0D8900A0C521 /* AverageColor_GL.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = AverageColor_GL.fsh; path = Source/Operations/Shaders/AverageColor_GL.fsh; sourceTree = "<group>"; };
 		BCFF47001CBB0D8900A0C521 /* AverageColor.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = AverageColor.vsh; path = Source/Operations/Shaders/AverageColor.vsh; sourceTree = "<group>"; };
 		BCFF47071CBB443B00A0C521 /* CameraConversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CameraConversion.swift; path = Source/CameraConversion.swift; sourceTree = "<group>"; };
+		DC1BEEFA210684F6007FB281 /* ImageBufferIntercepter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ImageBufferIntercepter.swift; path = Source/iOS/ImageBufferIntercepter.swift; sourceTree = "<group>"; };
 		DCCE5E4E20FEC16700EF86F9 /* Beautify.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Beautify.swift; path = Source/Operations/Beautify.swift; sourceTree = "<group>"; };
 		DCCE5E5220FEC17F00EF86F9 /* Beautify.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = Beautify.fsh; path = Source/Operations/Shaders/Beautify.fsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1132,6 +1134,7 @@
 				BC9E35231E524D4D00B8604F /* RenderView.swift */,
 				BC9E35221E524D4D00B8604F /* PictureOutput.swift */,
 				BC9E35211E524D4D00B8604F /* MovieOutput.swift */,
+				DC1BEEFA210684F6007FB281 /* ImageBufferIntercepter.swift */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
@@ -1566,6 +1569,7 @@
 				BC9E35611E5256A200B8604F /* TwoStageOperation.swift in Sources */,
 				BC9E35C41E5257DC00B8604F /* DarkenBlend.swift in Sources */,
 				BC9E358D1E52572E00B8604F /* SingleComponentGaussianBlur.swift in Sources */,
+				DC1BEEFC210684FF007FB281 /* ImageBufferIntercepter.swift in Sources */,
 				BC9E35361E524D7C00B8604F /* FramebufferCache.swift in Sources */,
 				BC9E359C1E52575A00B8604F /* ShiTomasiFeatureDetector.swift in Sources */,
 				BC9E358C1E52572B00B8604F /* GaussianBlur.swift in Sources */,
