@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "GPUImage2"
-  s.version      = "0.0.2"
+  s.version      = "0.0.3"
   s.summary      = "An open source iOS framework for GPU-based image and video processing. Hush Fork."
   s.description  = <<-DESC
     Image Filtering & Processing & Camera stuff
