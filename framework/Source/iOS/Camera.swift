@@ -188,8 +188,10 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
         guard (frameRenderingSemaphore.wait(timeout:DispatchTime.now()) == DispatchTimeoutResult.success) else { return }
     
         let startTime = CFAbsoluteTimeGetCurrent()
-        
-        let cameraFrame = CMSampleBufferGetImageBuffer(sampleBuffer)!
+        guard let cameraFrame = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            frameRenderingSemaphore.signal()
+            return
+        }
         let bufferWidth = CVPixelBufferGetWidth(cameraFrame)
         let bufferHeight = CVPixelBufferGetHeight(cameraFrame)
         let currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
